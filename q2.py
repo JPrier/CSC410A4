@@ -66,7 +66,7 @@ def solve(grid):
             if j+1 < len(grid[i+1]) and grid[i+1][j+1] != "*":
                 neighbours += [Or(neighbour(i+1, j+1, value[0]))]
 
-        clauses += [Or(neighbours)]
+        clauses += [Or(neighbours)]  # TODO: make this exactly one
 
     # Solve
     s = Solver()
