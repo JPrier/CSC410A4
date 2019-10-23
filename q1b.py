@@ -3,6 +3,13 @@
 from z3 import *
 from itertools import combinations
 
+def abs(x):
+    return If(x >= 0,x,-x)
+def check_preference (var, L):
+    for match in L:
+        if var == match:
+            return var + L.index(match)
+    return var + len(L)
 
 def solve(A, B):
     """
@@ -17,7 +24,6 @@ def solve(A, B):
     n = len(A)
     constraints_matching = []
     minimization_objectives = []
-
     # In this problem, you have to express matching constraints, that ensure the result is a correct
     # matching. You can reuse the constraints of q1a, but do not reuse the constraints_stability!
     # Instead, create a list of minimization objectives that have to be minimized (the list can
@@ -26,6 +32,74 @@ def solve(A, B):
     # Maximize Q <-> Minimize - Q
     # TODO add the matching constraints and the optimization objectives.
 
+    # constraints_matching from 1a
+    v = [Int('v{}'.format(i)) for i in range(1, (n * 2  ) + 1)]
+    # Element from A must be paired with an element in the range [n+1, 2n]
+    #constraints_matching += [And([(v[i] > n) for i in range(0, n)])]
+    #constraints_matching += [And([(v[i] <= (n * 2)) for i in range(0, n)])]
+    # Element from B must be paired with an element [1, n]
+    #constraints_matching += [And([(v[i] > 0) for i in range(n, n * 2)])]
+    #constraints_matching += [And([(v[i] <= n) for i in range(n, n * 2)])]
+    # Loop through combinations and add constraints
+    # tmp = []
+
+    constraints_matching += [And([(v[i] > n) for i in range(0, n)])]
+    constraints_matching += [And([(v[i] <= ((n * 2) + (n - 1) * (n * 2))) for i in range(0, n)])]
+    constraints_matching += [And([(v[i] > 0) for i in range(n, n * 2)])]
+    constraints_matching += [And([(v[i] <= (n + (n - 1) * (n * 2))) for i in range(n, n * 2)])]
+    for i, j in combinations(v, 2):
+        # tmp2 = []
+        # Every element in the matching must appear exactly once
+        if ((i in v[0:n]) and (j in v[0:n])) or ((i in v[n:(n * 2)]) and (j in v[n:(n * 2)])):
+            constraints_matching += [And((i != j))]
+        # Every element must match with their match
+        # if (i in v[0:n]) and (j in v[n:(n * 2)]):
+        #     num_i = int(str(i)[1])
+        #     num_j = int(str(j)[1])
+        #     tmp += [And([(i == num_j), (j == num_i)])]
+    # constraints_matching += [Or(tmp)]
+    for i in v[0:n]:
+        tmp = []
+        a = A[v.index(i)]
+        for j in v[n:(n * 2)]:
+            b = B[v.index(j) - n]
+            num_i = int(str(i)[1])
+            num_i += (n * 2) * (b.index(num_i))
+            num_j = int(str(j)[1])
+            num_j += (n * 2) * (a.index(num_j))
+
+            tmp += [And([(i == num_j), (j == num_i)])]
+        constraints_matching += [Or(tmp)]
+    # for i in v[0:n]:
+    #     tmp = []
+    #     a = A[v.index(i)]
+    #     for j in v[n:(n * 2)]:
+    #         b = B[v.index(j) - n]
+    #         num_i = int(str(i)[1])
+    #         #print(num_i)
+    #         #print(b.index(num_i))
+    #         num_i += 6 * (b.index(num_i))
+    #         #print(num_i)
+    #         num_j = int(str(j)[1])
+    #         num_j += 6 * (a.index(num_j))
+    #
+    #         tmp += [And([(i == num_j), (j == num_i)])]
+    #     constraints_matching += [Or(tmp)]
+    # for i in v[0:n]:
+    #     tmp = []
+    #     for j in v[n:(n * 2)]:
+    #         num_i = int(str(i)[1])
+    #         num_j = int(str(j)[1])
+    #         tmp += [And([(i == num_j), (j == num_i)])]
+    #     constraints_matching += [Or(tmp)]
+
+    for k in v:
+        minimization_objectives += [k]
+
+
+
+
+    #print('constraints_matching', constraints_matching)
 
     # ==============================================================================================
     # DO NOT MODIFY.
@@ -35,14 +109,22 @@ def solve(A, B):
         s.add(cstr)
     for opt in minimization_objectives:
         s.minimize(opt)
-
     assert str(s.check()) == 'sat'
     model = s.model()
     # ==============================================================================================
 
     # TODO : Add code here to interpret the model and return the matching.
-
-    return []
+    result = []
+    for m in range(0, len(model)):
+        value = int(str(model.get_interp(model[m])))
+        while value > n * 2:
+            value -= n * 2
+        result.append([len(model) - m, value])
+        # if 0 <= m < n:
+        #     if
+    print(model)
+    #result.reverse()
+    return result
 
 
 # ================================================================================
