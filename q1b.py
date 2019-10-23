@@ -31,33 +31,16 @@ def solve(A, B):
     # REMARK: to add a maximixation objective, just add its opposite:
     # Maximize Q <-> Minimize - Q
     # TODO add the matching constraints and the optimization objectives.
-
-    # constraints_matching from 1a
     v = [Int('v{}'.format(i)) for i in range(1, (n * 2  ) + 1)]
-    # Element from A must be paired with an element in the range [n+1, 2n]
-    #constraints_matching += [And([(v[i] > n) for i in range(0, n)])]
-    #constraints_matching += [And([(v[i] <= (n * 2)) for i in range(0, n)])]
-    # Element from B must be paired with an element [1, n]
-    #constraints_matching += [And([(v[i] > 0) for i in range(n, n * 2)])]
-    #constraints_matching += [And([(v[i] <= n) for i in range(n, n * 2)])]
-    # Loop through combinations and add constraints
-    # tmp = []
 
     constraints_matching += [And([(v[i] > n) for i in range(0, n)])]
     constraints_matching += [And([(v[i] <= ((n * 2) + (n - 1) * (n * 2))) for i in range(0, n)])]
     constraints_matching += [And([(v[i] > 0) for i in range(n, n * 2)])]
     constraints_matching += [And([(v[i] <= (n + (n - 1) * (n * 2))) for i in range(n, n * 2)])]
     for i, j in combinations(v, 2):
-        # tmp2 = []
-        # Every element in the matching must appear exactly once
         if ((i in v[0:n]) and (j in v[0:n])) or ((i in v[n:(n * 2)]) and (j in v[n:(n * 2)])):
             constraints_matching += [And((i != j))]
-        # Every element must match with their match
-        # if (i in v[0:n]) and (j in v[n:(n * 2)]):
-        #     num_i = int(str(i)[1])
-        #     num_j = int(str(j)[1])
-        #     tmp += [And([(i == num_j), (j == num_i)])]
-    # constraints_matching += [Or(tmp)]
+
     for i in v[0:n]:
         tmp = []
         a = A[v.index(i)]
@@ -67,39 +50,13 @@ def solve(A, B):
             num_i += (n * 2) * (b.index(num_i))
             num_j = int(str(j)[1])
             num_j += (n * 2) * (a.index(num_j))
-
             tmp += [And([(i == num_j), (j == num_i)])]
         constraints_matching += [Or(tmp)]
-    # for i in v[0:n]:
-    #     tmp = []
-    #     a = A[v.index(i)]
-    #     for j in v[n:(n * 2)]:
-    #         b = B[v.index(j) - n]
-    #         num_i = int(str(i)[1])
-    #         #print(num_i)
-    #         #print(b.index(num_i))
-    #         num_i += 6 * (b.index(num_i))
-    #         #print(num_i)
-    #         num_j = int(str(j)[1])
-    #         num_j += 6 * (a.index(num_j))
-    #
-    #         tmp += [And([(i == num_j), (j == num_i)])]
-    #     constraints_matching += [Or(tmp)]
-    # for i in v[0:n]:
-    #     tmp = []
-    #     for j in v[n:(n * 2)]:
-    #         num_i = int(str(i)[1])
-    #         num_j = int(str(j)[1])
-    #         tmp += [And([(i == num_j), (j == num_i)])]
-    #     constraints_matching += [Or(tmp)]
 
+    s = 0
     for k in v:
-        minimization_objectives += [k]
-
-
-
-
-    #print('constraints_matching', constraints_matching)
+        s += k
+    minimization_objectives += [s]
 
     # ==============================================================================================
     # DO NOT MODIFY.
@@ -120,12 +77,8 @@ def solve(A, B):
         while value > n * 2:
             value -= n * 2
         result.append([len(model) - m, value])
-        # if 0 <= m < n:
-        #     if
-    print(model)
-    #result.reverse()
+    result.reverse()
     return result
-
 
 # ================================================================================
 #  Do not modify below!
