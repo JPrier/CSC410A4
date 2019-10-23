@@ -8,11 +8,11 @@ def solve(grid):
     This function solves the Hidato puzzle with the initial configuration stored in grid.
     You should ouput a grid in the same format, but where all the '-' have been replaced by numbers.
     """
-    # TODO : solve the Hidato puzzle using Z3. gird[i][j] is either "-", "*" or an integer.
     clauses = []
 
     # Set up variables
     v = []
+    v_ignore = []
     max_value = 1
     for i, row in enumerate(grid):
         for j, value in enumerate(row):
@@ -21,6 +21,7 @@ def solve(grid):
                     v += [(Int("t_%i_%i" % (i,j)), (i,j))]
                 else:
                     v += [(Int("t_%i_%i" % (i,j)), (i,j))]
+                    v_ignore += [len(v) - 1]
                     clauses += [v[-1][0] == value]
                     if value > max_value:
                         max_value = value
@@ -28,48 +29,69 @@ def solve(grid):
     # Set up clauses
     ## all variables are >= 1
     clauses += [And([And([value[0] >= 1, value[0] <= max_value]) for value in v])]
+
     ## no two variables are equivalent
     for pairs in combinations(v, 2):
         clauses += [pairs[0][0] != pairs[1][0]]
+
     ## Any pair of sequential variables need to be touching (including diagonals)
-    for value in v:
-        neighbours = []
+    for v_i, value in enumerate(v):
+        neighbours_minus = []
+        neighbours_plus = []
         i, j = value[1][0], value[1][1]
 
-        if i > 0:
-            # i-1, j-1
-            if j > 0 and grid[i-1][j-1] != "*":
-                neighbours += [Or(neighbour(i-1, j-1, value[0]))]
-            # i-1, j
-            if grid[i-1][j] != "*":
-                neighbours += [Or(neighbour(i-1, j, value[0]))]
-            # i-1, j+1
-            if j+1 < len(grid[i-1]) and grid[i-1][j+1] != "*":
-                neighbours += [Or(neighbour(i-1, j+1, value[0]))]
+        if v_i not in v_ignore:
+            if i > 0:
+                # i-1, j-1
+                if j > 0 and grid[i-1][j-1] != "*":
+                    n = neighbour(i-1, j-1, value[0])
+                    neighbours_minus += [n[0]]
+                    neighbours_plus += [n[1]]
+                # i-1, j
+                if grid[i-1][j] != "*":
+                    n = neighbour(i-1, j, value[0])
+                    neighbours_minus += [n[0]]
+                    neighbours_plus += [n[1]]
+                # i-1, j+1
+                if j+1 < len(grid[i-1]) and grid[i-1][j+1] != "*":
+                    n = neighbour(i-1, j+1, value[0])
+                    neighbours_minus += [n[0]]
+                    neighbours_plus += [n[1]]
 
-        # i, j-1
-        if j > 0  and grid[i][j-1] != "*":
-            neighbours += [Or(neighbour(i, j-1, value[0]))]
+            # i, j-1
+            if j > 0  and grid[i][j-1] != "*":
+                n = neighbour(i, j-1, value[0])
+                neighbours_minus += [n[0]]
+                neighbours_plus += [n[1]]
 
-        # i, j+1
-        if j+1 < len(grid[i]) and grid[i][j+1] != "*":
-            neighbours += [Or(neighbour(i, j+1, value[0]))]
+            # i, j+1
+            if j+1 < len(grid[i]) and grid[i][j+1] != "*":
+                n = neighbour(i, j+1, value[0])
+                neighbours_minus += [n[0]]
+                neighbours_plus += [n[1]]
 
-        if i+1 < len(grid):
-            # i+1, j-1
-            if j > 0 and grid[i+1][j-1] != "*":
-                neighbours += [Or(neighbour(i+1, j-1, value[0]))]
-            # i+1, j
-            if grid[i+1][j] != "*":
-                neighbours += [Or(neighbour(i+1, j, value[0]))]
-            # i+1, j+1
-            if j+1 < len(grid[i+1]) and grid[i+1][j+1] != "*":
-                neighbours += [Or(neighbour(i+1, j+1, value[0]))]
+            if i+1 < len(grid):
+                # i+1, j-1
+                if j > 0 and grid[i+1][j-1] != "*":
+                    n = neighbour(i+1, j-1, value[0])
+                    neighbours_minus += [n[0]]
+                    neighbours_plus += [n[1]]
+                # i+1, j
+                if grid[i+1][j] != "*":
+                    n = neighbour(i+1, j, value[0])
+                    neighbours_minus += [n[0]]
+                    neighbours_plus += [n[1]]
+                # i+1, j+1
+                if j+1 < len(grid[i+1]) and grid[i+1][j+1] != "*":
+                    n = neighbour(i+1, j+1, value[0])
+                    neighbours_minus += [n[0]]
+                    neighbours_plus += [n[1]]
 
-        clauses += [Or(neighbours)]
-        #exactly one --  doesnt work
-        #for comb in combinations(neighbours, 2):
-        #    clauses += [Or([Not(comb[0]), Not(comb[1])])]
+        if len(neighbours_plus) > 0:
+            clauses += [Or(neighbours_plus)]
+
+        if len(neighbours_minus) > 0:
+            clauses += [Or(neighbours_minus)]
 
     # Solve
     s = Solver()
@@ -86,10 +108,10 @@ def solve(grid):
             grid[i][j] = model.evaluate(value[0])
 
         print("sat")
+        return grid
     else:
         print("unsat")
-
-    return grid
+        return None
 
 
 def neighbour(i, j, value):
