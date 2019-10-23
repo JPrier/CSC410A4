@@ -76,9 +76,9 @@ def solve(A, B):
         value = int(str(model.get_interp(model[m])))
         while value > n * 2:
             value -= n * 2
-        result.append([len(model) - m, value])
+        result.append((len(model) - m, value))
     result.reverse()
-    return result
+    return result[0:n]
 
 # ================================================================================
 #  Do not modify below!
