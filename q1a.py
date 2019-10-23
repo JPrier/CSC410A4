@@ -21,7 +21,85 @@ def solve(A, B):
     # In this problem, you have to express matching constraints, that ensure the result is a correct
     # matching, and stability constraints, which ensure the matching is stable.
     # TODO add the required constraints, separated in two sets.
+    # TODO add the required constraints, separated in two sets.
+    print('A', A)
+    print('B', B)
+    # TODO: Declare the variables
+    v = [Int('v{}'.format(i)) for i in range(1, (n * 2) + 1)]
+    print('v', v)
+    # constraints_matching
+    # Element from A must be paired with an element in the range [n+1, 2n]
+    constraints_matching += [And([(v[i] > n) for i in range(0, n)])]
+    constraints_matching += [And([(v[i] <= (n * 2)) for i in range(0, n)])]
+    # Element from B must be paired with an element [1, n]
+    constraints_matching += [And([(v[i] > 0) for i in range(n, n * 2)])]
+    constraints_matching += [And([(v[i] <= n) for i in range(n, n * 2)])]
+    # Loop through combinations and add constraints
+    # tmp = []
+    for i, j in combinations(v, 2):
+        # tmp2 = []
+        # Every element in the matching must appear exactly once
+        if ((i in v[0:n]) and (j in v[0:n])) or ((i in v[n:(n * 2)]) and (j in v[n:(n * 2)])):
+            constraints_matching += [And((i != j))]
+        # Every element must match with their match
+        # if (i in v[0:n]) and (j in v[n:(n * 2)]):
+        #     num_i = int(str(i)[1])
+        #     num_j = int(str(j)[1])
+        #     tmp += [And([(i == num_j), (j == num_i)])]
+    # constraints_matching += [Or(tmp)]
+    for i in v[0:n]:
+        tmp = []
+        for j in v[n:(n * 2)]:
+            num_i = int(str(i)[1])
+            num_j = int(str(j)[1])
+            tmp += [And([(i == num_j), (j == num_i)])]
+        constraints_matching += [Or(tmp)]
 
+    print('constraints_matching', constraints_matching)
+
+    # TODO: constraints_stability
+    # def prefers(i, j):
+    #     """
+    #     Returns True iff v prefers alt over curr and False otherwise.
+    #     """
+    #     num_i = int(str(i)[1])
+    #     num_j = int(str(j)[1])
+    #     index_i = num_i - 1
+    #     index_i = num_j - 1
+    #     return A[index_i].index(alt)
+
+    # Loop through combinations and add constraints
+    tmp = []
+    for i, j in combinations(v, 2):
+        # The match must be stable
+        # The following cannot be true:
+        # vi != j and
+        # vi prefers j and
+        # vj prefers i
+        tmp2 = []
+        if (i in v[0:n]) and (j in v[n:(n * 2)]):
+            num_i = int(str(i)[1])
+            num_j = int(str(j)[1])
+            print(('{} == {}'.format(i, num_j)))
+            # vi != j
+            tmp2 += [(i == num_j)]
+            # vi prefers j
+            for k in range(n + 1, (n * 2) + 1):
+                if k != num_j:
+                    print(('{}.index({}) < {}'.format(i, num_j, k)))
+                    tmp2 += [A[num_i - 1].index(num_j) < A[num_i - 1].index(k)]
+            # print(prefers(i,j))
+            # vj prefers i
+            for k in range(1, n + 1):
+                if k != num_i:
+                    print(('{}.index({}) < {}'.format(j, num_i, k)))
+                    tmp2 += [B[num_j - 1 - n].index(num_i) < B[num_j - 1 - n].index(k)]
+            # print(('{} prefers {}'.format(j, num_i)))
+            constraints_stability += [Not(And(tmp2))]
+    # print(tmp)
+    # constraints_stability += tmp
+
+    print('constraints_stability', constraints_stability)
 
     # ==============================================================================================
     # DO NOT MODIFY.
