@@ -22,11 +22,11 @@ def solve(A, B):
     # matching, and stability constraints, which ensure the matching is stable.
     # TODO add the required constraints, separated in two sets.
     # TODO add the required constraints, separated in two sets.
-    print('A', A)
-    print('B', B)
+    #print('A', A)
+    #print('B', B)
     # TODO: Declare the variables
     v = [Int('v{}'.format(i)) for i in range(1, (n * 2) + 1)]
-    print('v', v)
+    #print('v', v)
     # constraints_matching
     # Element from A must be paired with an element in the range [n+1, 2n]
     constraints_matching += [And([(v[i] > n) for i in range(0, n)])]
@@ -40,7 +40,7 @@ def solve(A, B):
         # tmp2 = []
         # Every element in the matching must appear exactly once
         if ((i in v[0:n]) and (j in v[0:n])) or ((i in v[n:(n * 2)]) and (j in v[n:(n * 2)])):
-            constraints_matching += [And((i != j))]
+            constraints_matching += [i != j]
         # Every element must match with their match
         # if (i in v[0:n]) and (j in v[n:(n * 2)]):
         #     num_i = int(str(i)[1])
@@ -55,7 +55,7 @@ def solve(A, B):
             tmp += [And([(i == num_j), (j == num_i)])]
         constraints_matching += [Or(tmp)]
 
-    print('constraints_matching', constraints_matching)
+    #print('constraints_matching', constraints_matching)
 
     # TODO: constraints_stability
     # def prefers(i, j):
@@ -69,7 +69,6 @@ def solve(A, B):
     #     return A[index_i].index(alt)
 
     # Loop through combinations and add constraints
-    tmp = []
     for i, j in combinations(v, 2):
         # The match must be stable
         # The following cannot be true:
@@ -80,26 +79,22 @@ def solve(A, B):
         if (i in v[0:n]) and (j in v[n:(n * 2)]):
             num_i = int(str(i)[1])
             num_j = int(str(j)[1])
-            print(('{} == {}'.format(i, num_j)))
+            #print(('{} == {}'.format(i, num_j)))
             # vi != j
             tmp2 += [(i == num_j)]
             # vi prefers j
             for k in range(n + 1, (n * 2) + 1):
                 if k != num_j:
-                    print(('{}.index({}) < {}'.format(i, num_j, k)))
-                    tmp2 += [A[num_i - 1].index(num_j) < A[num_i - 1].index(k)]
-            # print(prefers(i,j))
+                    #print(('{}.index({}) < {}'.format(i, num_j, k)))
+                    tmp2 += [A[num_i - 1].index(num_j) > A[num_i - 1].index(k)]
             # vj prefers i
             for k in range(1, n + 1):
                 if k != num_i:
-                    print(('{}.index({}) < {}'.format(j, num_i, k)))
-                    tmp2 += [B[num_j - 1 - n].index(num_i) < B[num_j - 1 - n].index(k)]
-            # print(('{} prefers {}'.format(j, num_i)))
-            constraints_stability += [Not(And(tmp2))]
-    # print(tmp)
-    # constraints_stability += tmp
+                    #print(('{}.index({}) < {}'.format(j, num_i, k)))
+                    tmp2 += [B[num_j - 1 - n].index(num_i) > B[num_j - 1 - n].index(k)]
 
-    print('constraints_stability', constraints_stability)
+
+            constraints_stability += [Not(And(tmp2))]
 
     # ==============================================================================================
     # DO NOT MODIFY.
@@ -112,8 +107,11 @@ def solve(A, B):
     # ==============================================================================================
 
     # TODO : Add code here to interpret the model and return the matching.
+    pairs = []
+    for i in range(len(v)/2):
+        pairs += [[str(v[i])[1], str(model.evaluate(v[i]))]]
 
-    return []
+    return pairs
 
 
 # ================================================================================
