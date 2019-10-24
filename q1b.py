@@ -34,9 +34,9 @@ def solve(A, B):
     v = [Int('v{}'.format(i)) for i in range(1, (n * 2  ) + 1)]
 
     constraints_matching += [And([(v[i] > n) for i in range(0, n)])]
-    constraints_matching += [And([(v[i] <= ((n * 2) + (n - 1) * (n * 2))) for i in range(0, n)])]
+    constraints_matching += [And([(v[i] <= ((n * 2) + (n - 1) * (n * 2 * n * 2))) for i in range(0, n)])]
     constraints_matching += [And([(v[i] > 0) for i in range(n, n * 2)])]
-    constraints_matching += [And([(v[i] <= (n + (n - 1) * (n * 2))) for i in range(n, n * 2)])]
+    constraints_matching += [And([(v[i] <= (n + (n - 1) * (n * 2 * n * 2))) for i in range(n, n * 2)])]
     for i, j in combinations(v, 2):
         if ((i in v[0:n]) and (j in v[0:n])) or ((i in v[n:(n * 2)]) and (j in v[n:(n * 2)])):
             constraints_matching += [And((i != j))]
@@ -47,9 +47,9 @@ def solve(A, B):
         for j in v[n:(n * 2)]:
             b = B[v.index(j) - n]
             num_i = int(str(i)[1])
-            num_i += (n * 2) * (b.index(num_i))
+            num_i += (n * 2 * n * 2) * (b.index(num_i))
             num_j = int(str(j)[1])
-            num_j += (n * 2) * (a.index(num_j))
+            num_j += (n * 2 * n * 2) * (a.index(num_j))
             tmp += [And([(i == num_j), (j == num_i)])]
         constraints_matching += [Or(tmp)]
 
@@ -72,12 +72,12 @@ def solve(A, B):
 
     # TODO : Add code here to interpret the model and return the matching.
     result = []
-    for m in range(0, len(model)):
-        value = int(str(model.get_interp(model[m])))
-        while value > n * 2:
-            value -= n * 2
-        result.append((len(model) - m, value))
-    result.reverse()
+    model_list = sorted([(d, model[d]) for d in model], key=lambda x: str(x[0]))
+    for m in model_list:
+        value = int(str(m[1]))
+        while value > n * 2 * n * 2:
+            value -= n * 2 * n * 2
+        result.append((model_list.index(m) + 1, value))
     return result[0:n]
 
 # ================================================================================
